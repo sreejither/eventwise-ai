@@ -5,6 +5,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Built with React](https://img.shields.io/badge/Built%20with-React%2018-61DAFB?logo=react)](https://react.dev)
 [![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini-4285F4?logo=google)](https://ai.google.dev)
+[![Hosted on Firebase](https://img.shields.io/badge/Hosted%20on-Firebase%20Hosting-FFA611?logo=firebase)](https://eventwise-ai-app.web.app)
+
+---
+
+## 🌐 Live URLs
+
+- **Live Deployed Web Application:** [https://eventwise-ai-app.web.app](https://eventwise-ai-app.web.app)
+- **Alternate Firebase Domain:** [https://eventwise-ai-app.firebaseapp.com](https://eventwise-ai-app.firebaseapp.com)
+- **Official GitHub Repository:** [https://github.com/sreejither/eventwise-ai](https://github.com/sreejither/eventwise-ai)
 
 ---
 
