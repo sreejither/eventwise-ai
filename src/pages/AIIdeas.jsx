@@ -1,0 +1,180 @@
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { ArrowLeft, Lightbulb, RefreshCw, Loader2, Info } from 'lucide-react'
+import { getEventById, getEvents, saveEvent } from '../utils/storage.js'
+import { generateDemoPlan } from '../utils/demoEngine.js'
+import { generateNewIdeasWithAI, checkAPIAvailability } from '../utils/aiService.js'
+
+function IdeaSection({ title, emoji, items }) {
+  if (!items || items.length === 0) return null
+  return (
+    <div className="bg-white rounded-2xl border border-purple-50 shadow-sm p-5">
+      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+        <span className="text-xl">{emoji}</span>
+        {title}
+      </h3>
+      <ul className="space-y-2">
+        {items.map((item, idx) => (
+          <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
+            <span className="text-purple-400 mt-0.5">•</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+export default function AIIdeas({ onRefresh }) {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [event, setEvent] = useState(null)
+  const [ideas, setIdeas] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [aiAvailable, setAiAvailable] = useState(false)
+  const [isDemo, setIsDemo] = useState(true)
+
+  useEffect(() => {
+    const ev = id ? getEventById(id) : getEvents()[0]
+    if (!ev) return
+    setEvent(ev)
+    if (ev.plan?.creativeIdeas) {
+      setIdeas(ev.plan.creativeIdeas)
+      setIsDemo(!ev.generatedWithAI)
+    }
+    checkAPIAvailability().then(setAiAvailable)
+  }, [id])
+
+  async function handleRegenerate() {
+    if (!event) return
+    setLoading(true)
+    try {
+      let newIdeas = null
+      let usedAI = false
+
+      if (aiAvailable) {
+        try {
+          newIdeas = await generateNewIdeasWithAI(event)
+          usedAI = true
+        } catch {
+          newIdeas = generateDemoPlan(event).creativeIdeas
+        }
+      } else {
+        newIdeas = generateDemoPlan(event).creativeIdeas
+      }
+
+      setIdeas(newIdeas)
+      setIsDemo(!usedAI)
+
+      const updatedEvent = {
+        ...event,
+        plan: { ...event.plan, creativeIdeas: newIdeas },
+        updatedAt: new Date().toISOString(),
+      }
+      saveEvent(updatedEvent)
+      setEvent(updatedEvent)
+      if (onRefresh) onRefresh()
+    } catch (err) {
+      console.error('Failed to regenerate ideas:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!event) return (
+    <div className="max-w-3xl mx-auto text-center py-16">
+      <p className="text-gray-500 mb-4">No event found. Please create an event first.</p>
+      <Link to="/create" className="text-purple-600 hover:underline font-medium">Create an Event →</Link>
+    </div>
+  )
+
+  const sections = ideas ? [
+    { title: 'Event Themes', emoji: '🎨', key: 'themes' },
+    { title: 'Decoration Concepts', emoji: '🌸', key: 'decoration' },
+    { title: 'Invitation Wording', emoji: '💌', key: 'invitations' },
+    { title: 'Food Menu Ideas', emoji: '🍽️', key: 'food' },
+    { title: 'Entertainment', emoji: '🎭', key: 'entertainment' },
+    { title: 'Photography Concepts', emoji: '📸', key: 'photography' },
+    { title: 'Guest Experiences', emoji: '🌟', key: 'guestExperience' },
+  ] : []
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          {id && (
+            <button onClick={() => navigate(`/events/${id}`)} className="p-2 rounded-xl hover:bg-purple-50 text-gray-500 hover:text-purple-700 transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">AI Creative Ideas</h1>
+            <p className="text-sm text-gray-500">{event.name} – {event.eventType}</p>
+          </div>
+        </div>
+        <button
+          onClick={handleRegenerate}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-60"
+        >
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <RefreshCw className="w-4 h-4" />
+          )}
+          {loading ? 'Generating…' : 'Regenerate'}
+        </button>
+      </div>
+
+      {/* Mode indicator */}
+      {isDemo && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+          <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">Demo Mode</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Ideas generated by local planning engine. Configure Gemini API key for AI-powered personalized suggestions.
+            </p>
+          </div>
+        </div>
+      )}
+      {!isDemo && (
+        <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl p-4 mb-5">
+          <Lightbulb className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-green-800 font-medium">✨ AI-generated personalized ideas for your {event.eventType}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+          <p className="text-gray-500">Generating creative ideas…</p>
+        </div>
+      ) : ideas ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {sections.map(({ title, emoji, key }) => (
+            <IdeaSection
+              key={key}
+              title={title}
+              emoji={emoji}
+              items={ideas[key]}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-dashed border-purple-200 p-12 text-center">
+          <Lightbulb className="w-12 h-12 text-purple-300 mx-auto mb-3" />
+          <h3 className="font-semibold text-gray-700 mb-2">No ideas yet</h3>
+          <p className="text-gray-400 text-sm mb-4">Generate creative ideas for your event</p>
+          <button
+            onClick={handleRegenerate}
+            className="inline-flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors"
+          >
+            <Lightbulb className="w-4 h-4" />
+            Generate Ideas
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}

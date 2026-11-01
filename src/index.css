@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #6d28d9;
+  --color-primary-light: #7c3aed;
+  --color-primary-dark: #5b21b6;
+  --color-bg: #faf9ff;
+  --color-surface: #ffffff;
+  --color-lavender: #f5f3ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-bg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1e1b4b;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f0ff;
+}
+::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a78bfa;
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Smooth transitions */
+.transition-all {
+  transition: all 0.2s ease;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #6d28d9, #7c3aed, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(109, 40, 217, 0.15);
+}
+
+/* Budget bar animation */
+.budget-bar {
+  transition: width 0.5s ease;
+}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 40;
+}
